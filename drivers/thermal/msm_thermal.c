@@ -23,24 +23,6 @@
 #define DEF_TEMP_SENSOR      0
 
 //max thermal limit
-<<<<<<< HEAD
-#define DEF_ALLOWED_MAX_HIGH 72
-#define DEF_ALLOWED_MAX_FREQ 384000
-
-//mid thermal limit
-#define DEF_ALLOWED_MID_HIGH 65
-#define DEF_ALLOWED_MID_FREQ 972000
-
-//low thermal limit
-#define DEF_ALLOWED_LOW_HIGH 58
-#define DEF_ALLOWED_LOW_FREQ 1134000
-
-//fallback safe max frequency
-#define FALLBACK_MAX 1188000
-
-//Sampling interval
-#define DEF_THERMAL_CHECK_MS 2000
-=======
 #define DEF_ALLOWED_MAX_HIGH 76
 #define DEF_ALLOWED_MAX_FREQ 384000
 
@@ -54,20 +36,14 @@
 
 //Sampling interval
 #define DEF_THERMAL_CHECK_MS 1000
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 
 static int enabled;
 
 //Throttling indicator, 0=not throttled, 1=low, 2=mid, 3=max
 static int thermal_throttled = 0;
 
-<<<<<<< HEAD
-static unsigned int pre_throttled_max = 0;
-static unsigned int current_max = 0;
-=======
 //Safe the cpu max freq before throttling
 static int pre_throttled_max = 0;
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 
 static struct delayed_work check_temp_work;
 
@@ -95,11 +71,7 @@ static struct msm_thermal_tuners {
 	.allowed_mid_freq = DEF_ALLOWED_MID_FREQ,
 
 	.allowed_low_high = DEF_ALLOWED_LOW_HIGH,
-<<<<<<< HEAD
-	.allowed_low_low = (DEF_ALLOWED_LOW_HIGH - 3),
-=======
 	.allowed_low_low = (DEF_ALLOWED_LOW_HIGH - 6),
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 	.allowed_low_freq = DEF_ALLOWED_LOW_FREQ,
 
 	.check_interval_ms = DEF_THERMAL_CHECK_MS,
@@ -121,11 +93,7 @@ static int update_cpu_max_freq(struct cpufreq_policy *cpu_policy,
 	if (!ret)
 		pr_info("msm_thermal: Limiting core%d max frequency to %d\n",
 			cpu, max_freq);
-<<<<<<< HEAD
-        current_max = max_freq;
-=======
 
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 	return ret;
 }
 
@@ -135,11 +103,7 @@ static void check_temp(struct work_struct *work)
 	struct tsens_device tsens_dev;
 	unsigned long temp = 0;
 	unsigned int max_freq = 0;
-<<<<<<< HEAD
-	bool update_policy = false;
-=======
 	int update_policy = 0;
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 	int cpu = 0;
 	int ret = 0;
 
@@ -151,45 +115,14 @@ static void check_temp(struct work_struct *work)
 		goto reschedule;
 	}
 
-<<<<<<< HEAD
-
-        update_policy = false;
-	for_each_possible_cpu(cpu) {
-=======
 	for_each_possible_cpu(cpu) {
 		update_policy = 0;
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 		cpu_policy = cpufreq_cpu_get(cpu);
 		if (!cpu_policy) {
 			pr_debug("msm_thermal: NULL policy on cpu %d\n", cpu);
 			continue;
 		}
 
-<<<<<<< HEAD
-		if (thermal_throttled > 0)
-		{
-			if (current_max != cpu_policy->user_policy.max)
-			{
-				//something must have changed the max frequency,
-				//lets save the new value and reapply throttling
-				if (cpu == 0)
-				    pre_throttled_max = cpu_policy->user_policy.max;
-				update_policy = true;
-			}
-		}
-
-		if (!update_policy)
-		{
-		//low trip point
-		if ((temp >= msm_thermal_tuners_ins.allowed_low_high) &&
-		    (temp < msm_thermal_tuners_ins.allowed_mid_high) &&
-		    (cpu_policy->user_policy.max > msm_thermal_tuners_ins.allowed_low_freq)) {
-			update_policy = true;
-			/* save pre-throttled max freq value */
-                        if (thermal_throttled == 0)
-			    pre_throttled_max = cpu_policy->user_policy.max;
-
-=======
 		//low trip point
 		if ((temp >= msm_thermal_tuners_ins.allowed_low_high) &&
 		    (temp < msm_thermal_tuners_ins.allowed_mid_high) &&
@@ -197,48 +130,10 @@ static void check_temp(struct work_struct *work)
 			update_policy = 1;
 			/* save pre-throttled max freq value */
 			pre_throttled_max = cpu_policy->max;
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 			max_freq = msm_thermal_tuners_ins.allowed_low_freq;
 			thermal_throttled = 1;
 			pr_warn("msm_thermal: Thermal Throttled (low)! temp: %lu\n", temp);
 		//low clr point
-<<<<<<< HEAD
-		} else if ((temp < msm_thermal_tuners_ins.allowed_low_low) && (thermal_throttled > 0)) {
-
-			if (pre_throttled_max != 0)
-				max_freq = pre_throttled_max;
-			else {
-
-				max_freq = FALLBACK_MAX;
-				pr_warn("msm_thermal: ERROR! pre_throttled_max=0, falling back to %u\n", FALLBACK_MAX);
-			}
-			update_policy = true;
-			/* wait until 2nd core is unthrottled */
-			//if (cpu == 1)
-				thermal_throttled = 0;
-			pr_warn("msm_thermal: Low Thermal Throttling Ended! temp: %lu\n", temp);
-
-		//mid trip point
-		} else if ((temp >= msm_thermal_tuners_ins.allowed_mid_high) &&
-			   (temp < msm_thermal_tuners_ins.allowed_max_high) &&
-			   (cpu_policy->user_policy.max > msm_thermal_tuners_ins.allowed_mid_freq)) {
-			update_policy = true;
-			max_freq = msm_thermal_tuners_ins.allowed_mid_freq;
-			thermal_throttled = 2;
-			pr_warn("msm_thermal: Thermal Throttled (mid)! temp: %lu\n", temp);
-		//mid clr point
-		} else if ( (temp < msm_thermal_tuners_ins.allowed_mid_low) && (thermal_throttled > 1)) {
-			max_freq = msm_thermal_tuners_ins.allowed_low_freq;
-			update_policy = true;
-			/* wait until 2nd core is unthrottled */
-			//if (cpu == 1)
-				thermal_throttled = 1;
-			pr_warn("msm_thermal: Mid Thermal Throttling Ended! temp: %lu\n", temp);
-		//max trip point
-		} else if ((temp >= msm_thermal_tuners_ins.allowed_max_high) &&
-			   (cpu_policy->user_policy.max > msm_thermal_tuners_ins.allowed_max_freq)) {
-			update_policy = true;
-=======
 		} else if ((temp < msm_thermal_tuners_ins.allowed_low_low) &&
 			   (thermal_throttled > 0)) {
 #ifdef CONFIG_MSM_CPU_FREQ_SET_MIN_MAX
@@ -285,22 +180,10 @@ static void check_temp(struct work_struct *work)
 		} else if ((temp >= msm_thermal_tuners_ins.allowed_max_high) &&
 			   (cpu_policy->max > msm_thermal_tuners_ins.allowed_max_freq)) {
 			update_policy = 1;
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 			max_freq = msm_thermal_tuners_ins.allowed_max_freq;
 			thermal_throttled = 3;
 			pr_warn("msm_thermal: Thermal Throttled (max)! temp: %lu\n", temp);
 		//max clr point
-<<<<<<< HEAD
-		} else if ((temp < msm_thermal_tuners_ins.allowed_max_low) && (thermal_throttled > 2)) {
-			max_freq = msm_thermal_tuners_ins.allowed_mid_freq;
-			update_policy = true;
-			/* wait until 2nd core is unthrottled */
-			//if (cpu == 1)
-				thermal_throttled = 2;
-			pr_warn("msm_thermal: Max Thermal Throttling Ended! temp: %lu\n", temp);
-
-		}
-=======
 		} else if ((temp < msm_thermal_tuners_ins.allowed_max_low) &&
 			   (thermal_throttled > 2)) {
 			if (cpu_policy->max < cpu_policy->cpuinfo.max_freq) {
@@ -311,7 +194,6 @@ static void check_temp(struct work_struct *work)
 					thermal_throttled = 2;
 				pr_warn("msm_thermal: Max Thermal Throttling Ended! temp: %lu\n", temp);
 			}
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 		}
 
 		if (update_policy)
@@ -338,24 +220,16 @@ static void disable_msm_thermal(void)
 	for_each_possible_cpu(cpu) {
 		cpu_policy = cpufreq_cpu_get(cpu);
 		if (cpu_policy) {
-<<<<<<< HEAD
-
-=======
 #ifdef CONFIG_MSM_CPU_FREQ_SET_MIN_MAX
 			if (cpu_policy->max < CONFIG_MSM_CPU_FREQ_MAX)
 				update_cpu_max_freq(cpu_policy, cpu,
 							CONFIG_MSM_CPU_FREQ_MAX);
 #else
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 			if (cpu_policy->max < cpu_policy->cpuinfo.max_freq)
 				update_cpu_max_freq(cpu_policy, cpu,
 						    cpu_policy->
 						    cpuinfo.max_freq);
-<<<<<<< HEAD
-
-=======
 #endif
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 			cpufreq_cpu_put(cpu_policy);
 		}
 	}
@@ -583,10 +457,6 @@ static int __init msm_thermal_init(void)
 	int rc, ret = 0;
 
 	enabled = 1;
-<<<<<<< HEAD
-
-=======
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 	INIT_DELAYED_WORK(&check_temp_work, check_temp);
 
 	schedule_delayed_work(&check_temp_work, 0);
@@ -600,13 +470,7 @@ static int __init msm_thermal_init(void)
 		}
 	} else
 		pr_warn("msm_thermal: sysfs: ERROR, could not create sysfs kobj");
-<<<<<<< HEAD
-	pr_info("Starting msm_thermal monitor: thresholds %u° %u° %u°\n",
-		DEF_ALLOWED_LOW_HIGH, DEF_ALLOWED_MID_HIGH, DEF_ALLOWED_MAX_HIGH );
-=======
 
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 	return ret;
 }
 fs_initcall(msm_thermal_init);
-

@@ -9,8 +9,4 @@ obj-$(CONFIG_THERMAL_MSM_POPMEM)	+= msm_popmem-tm.o
 obj-$(CONFIG_THERMAL_TSENS)	+= msm_tsens.o
 obj-$(CONFIG_THERMAL_TSENS8x60) += msm8x60_tsens.o
 obj-$(CONFIG_THERMAL_PM8XXX)	+= pm8xxx-tm.o
-<<<<<<< HEAD
-obj-$(CONFIG_THERMAL_TSENS8x60) += msm8x60_tsens.o
-=======
->>>>>>> b31cd39... drivers: add thermal for kernel based mpdecision
 obj-$(CONFIG_THERMAL_MONITOR)	+= msm_thermal.o
