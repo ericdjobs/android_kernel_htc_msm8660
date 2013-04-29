@@ -2765,19 +2765,6 @@ static struct platform_device android_pmem_sf_device = {
 	.id = 1,
 	.dev = { .platform_data = &android_pmem_sf_pdata },
 };
-
-static struct android_pmem_platform_data android_pmem_adsp_pdata = {
-	.name = "pmem_adsp",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 1,
-	.memory_type = MEMTYPE_EBI1,
-};
-
-static struct platform_device android_pmem_adsp_device = {
-	.name = "android_pmem",
-	.id = 2,
-	.dev = { .platform_data = &android_pmem_adsp_pdata },
-};
 #endif
 static struct android_pmem_platform_data android_pmem_audio_pdata = {
 	.name = "pmem_audio",
@@ -2790,6 +2777,19 @@ static struct platform_device android_pmem_audio_device = {
 	.name = "android_pmem",
 	.id = 4,
 	.dev = { .platform_data = &android_pmem_audio_pdata },
+};
+
+static struct android_pmem_platform_data android_pmem_adsp_pdata = {
+        .name = "pmem_adsp",
+        .allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
+        .cached = 1,
+        .memory_type = MEMTYPE_EBI1,
+};
+
+static struct platform_device android_pmem_adsp_device = {
+        .name = "android_pmem",
+        .id = 2,
+        .dev = { .platform_data = &android_pmem_adsp_pdata },
 };
 
 #define PMEM_BUS_WIDTH(_bw) \
@@ -7234,10 +7234,10 @@ static struct platform_device *ruby_devices[] __initdata = {
 #ifdef CONFIG_ANDROID_PMEM
 #ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	&android_pmem_sf_device,
-	&android_pmem_adsp_device,
 #endif
 	&android_pmem_smipool_device,
 	&android_pmem_audio_device,
+	&android_pmem_adsp_device,
 #endif
 #ifdef CONFIG_MSM_ROTATOR
 	&msm_rotator_device,
@@ -7366,12 +7366,11 @@ static void __init size_pmem_devices(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
 #ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-	size_pmem_device(&android_pmem_adsp_pdata, MSM_PMEM_ADSP_BASE, pmem_adsp_size);
 	size_pmem_device(&android_pmem_sf_pdata, MSM_PMEM_SF_BASE, pmem_sf_size);
 #endif
 	size_pmem_device(&android_pmem_smipool_pdata, MSM_PMEM_SMIPOOL_BASE, MSM_PMEM_SMIPOOL_SIZE);
 	size_pmem_device(&android_pmem_audio_pdata, MSM_PMEM_AUDIO_BASE+ 0x10000000, MSM_PMEM_AUDIO_SIZE);
-
+	size_pmem_device(&android_pmem_adsp_pdata, MSM_PMEM_ADSP_BASE, pmem_adsp_size);
 #endif
 }
 
@@ -7392,11 +7391,11 @@ static void __init reserve_pmem_memory(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
 #ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
-	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_sf_pdata);
 #endif
 	reserve_memory_for(&android_pmem_smipool_pdata);
 	reserve_memory_for(&android_pmem_audio_pdata);
+	reserve_memory_for(&android_pmem_adsp_pdata);
 #endif
 }
 
