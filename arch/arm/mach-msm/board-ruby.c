@@ -2691,7 +2691,6 @@ static void __init msm8x60_init_dsps(void)
 #define MSM_PMEM_TZCOM_BASE			(MSM_PMEM_SF_BASE + MSM_PMEM_SF_SIZE)
 
 #define MSM_OVERLAY_BLT_BASE  (MSM_ION_SF_BASE - MSM_OVERLAY_BLT_SIZE)
-#define MSM_PMEM_AUDIO_BASE  0x6BACA000
 #define MSM_ION_WB_BASE    0x40400000
 #define MSM_ION_SF_BASE    (0x70000000 - MSM_ION_SF_SIZE)
 #define MSM_FB_BASE				 (MSM_OVERLAY_BLT_BASE + MSM_OVERLAY_BLT_SIZE)
@@ -7345,10 +7344,7 @@ static struct memtype_reserve msm8x60_reserve_table[] __initdata = {
 		.flags	=	MEMTYPE_FLAGS_1M_ALIGN,
 	},
 	[MEMTYPE_EBI1] = {
-		.start	=	MSM_PMEM_TZCOM_BASE,
-		.limit	=	MSM_PMEM_TZCOM_SIZE,
-		.size	=	MSM_PMEM_TZCOM_SIZE,
-		.flags	=	MEMTYPE_FLAGS_FIXED,
+		.flags  =  MEMTYPE_FLAGS_1M_ALIGN,
 	},
 };
 
