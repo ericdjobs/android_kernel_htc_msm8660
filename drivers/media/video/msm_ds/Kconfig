@@ -10,7 +10,7 @@ menuconfig DS_MSM_CAMERA
 config DS_MSM_CAMERA_V4L2
 	bool "Video For Linux interface to MSM camera"
 	depends on DS_MSM_CAMERA && VIDEO_V4L2 && EXPERIMENTAL
-	default y
+	default n
 	help
 	  Say Y here to enable the V4L2 interface for the MSM camera.
 	  Not everything works through this interface and it has not
@@ -139,7 +139,7 @@ config DS_OV9665
 config DS_MSM_CAMERA_FLASH
 	bool "Qualcomm MSM camera flash support"
 	depends on DS_MSM_CAMERA_8X60
-	default y
+	default n
 	---help---
 	  Enable support for LED flash for msm camera
 
@@ -167,7 +167,7 @@ config DS_MSM_GEMINI
 config DS_MSM_VPE
 	tristate "Qualcomm MSM Video Pre-processing Engine support"
 	depends on DS_MSM_CAMERA && (ARCH_MSM7X30 || ARCH_MSM8X60)
-	default y
+	default n
 	---help---
 	  Enable support for Video Pre-processing Engine
 
