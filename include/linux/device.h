@@ -24,7 +24,6 @@
 #include <linux/pm.h>
 #include <asm/atomic.h>
 #include <asm/device.h>
-#include <linux/export.h>
 
 struct device;
 struct device_private;
