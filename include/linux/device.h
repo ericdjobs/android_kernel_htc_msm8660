@@ -20,6 +20,7 @@
 #include <linux/lockdep.h>
 #include <linux/compiler.h>
 #include <linux/types.h>
+#include <linux/export.h>
 #include <linux/module.h>
 #include <linux/pm.h>
 #include <asm/atomic.h>
