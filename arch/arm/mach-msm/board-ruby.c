@@ -2704,6 +2704,7 @@ static void __init msm8x60_init_dsps(void)
 #define MSM_PMEM_SMIPOOL_SIZE	   USER_SMI_SIZE
 
 #define MSM_ION_SF_SIZE       MSM_PMEM_SF_SIZE
+#define MSM_ION_SF_BASE    (0x70000000 - MSM_ION_SF_SIZE)
 #define MSM_ION_CAMERA_SIZE   MSM_PMEM_ADSP_SIZE
 #define MSM_ION_MM_FW_SIZE    0x200000  
 #define MSM_ION_MM_SIZE       0x3D00000 
@@ -2714,6 +2715,14 @@ static void __init msm8x60_init_dsps(void)
 #define MSM_ION_CAMERA_BASE   (0x40E00000)	
 #define MSM_ION_WB_BASE       (0x46400000)
 #define MSM_ION_AUDIO_BASE    (0x7FB00000)
+
+#define MSM_ION_HOLE_SIZE  SZ_128K 
+#define MSM_MM_FW_SIZE    (0x200000 - MSM_ION_HOLE_SIZE) 
+
+#define MSM_MM_FW_BASE    MSM_SMI_BASE
+#define MSM_ION_HOLE_BASE  (MSM_MM_FW_BASE + MSM_MM_FW_SIZE)
+#define MSM_ION_MM_BASE    (MSM_ION_HOLE_BASE + MSM_ION_HOLE_SIZE)
+#define MSM_ION_MFC_BASE  (MSM_ION_MM_BASE + MSM_ION_MM_SIZE)
 
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 #define MSM_ION_AUDIO_SIZE  MSM_PMEM_AUDIO_SIZE
@@ -2875,6 +2884,15 @@ static struct platform_device android_pmem_smipool_device = {
   .dev = { .platform_data = &android_pmem_smipool_pdata },
 };
 #endif
+static struct resource msm_fb_resources[] = {
+  {
+    .flags  = IORESOURCE_DMA,
+  },
+  /* for overlay write back operation */
+  {
+    .flags  = IORESOURCE_DMA,
+  },
+ };
 #endif
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
@@ -7316,29 +7334,40 @@ static struct platform_device ion_dev = {
 };
 #endif
 
- static struct memtype_reserve msm8x60_reserve_table[] __initdata = {
+static struct memtype_reserve msm8x60_reserve_table[] __initdata = {
 #if defined(CONFIG_MSM_MULTIMEDIA_USE_ION)
-  [MEMTYPE_SMI] = {
-    .start  =  MSM_SMI_BASE,
-    .limit  =  MSM_SMI_SIZE,
-    .flags  =  MEMTYPE_FLAGS_FIXED,
-  },
+	[MEMTYPE_SMI] = {
+		.start	=	MSM_SMI_BASE,
+		.limit	=	MSM_SMI_SIZE,
+		.flags	=	MEMTYPE_FLAGS_FIXED,
+	},
 #else
-   /* Kernel SMI memory pool for video core, used for firmware */
-   /* and encoder, decoder scratch buffers */
-   /* Kernel SMI memory pool should always precede the user space */
-@@ -3783,11 +3952,44 @@ static int mhl_sii9234_power(int on)
-     .limit  =  USER_SMI_SIZE,
-     .flags  =  MEMTYPE_FLAGS_FIXED,
-   },
+	/* Kernel SMI memory pool for video core, used for firmware */
+	/* and encoder, decoder scratch buffers */
+	/* Kernel SMI memory pool should always precede the user space */
+	/* SMI memory pool, as the video core will use offset address */
+	/* from the Firmware base */
+	[MEMTYPE_SMI_KERNEL] = {
+		.start	=	KERNEL_SMI_BASE,
+		.limit	=	KERNEL_SMI_SIZE,
+		.size	=	KERNEL_SMI_SIZE,
+		.flags	=	MEMTYPE_FLAGS_FIXED,
+	},
+	/* User space SMI memory pool for video core */
+	/* used for encoder, decoder input & output buffers  */
+	[MEMTYPE_SMI] = {
+		.start	=	USER_SMI_BASE,
+		.limit	=	USER_SMI_SIZE,
+		.flags	=	MEMTYPE_FLAGS_FIXED,
+	},
 #endif
-   [MEMTYPE_EBI0] = {
-     .flags  =  MEMTYPE_FLAGS_1M_ALIGN,
-   },
-  [MEMTYPE_EBI1] = {
-    .flags  =  MEMTYPE_FLAGS_1M_ALIGN,
-  },
- };
+	[MEMTYPE_EBI0] = {
+		.flags	=	MEMTYPE_FLAGS_1M_ALIGN,
+	},
+	[MEMTYPE_EBI1] = {
+		.flags	=	MEMTYPE_FLAGS_1M_ALIGN,
+	},
+};
  
 static void __init reserve_ion_memory(void)
 {
@@ -7368,33 +7397,6 @@ static void __init reserve_ion_memory(void)
   msm8x60_reserve_table[MEMTYPE_EBI1].size += MSM_ION_AUDIO_SIZE;
 #endif
 }
-
-static struct memtype_reserve msm8x60_reserve_table[] __initdata = {
-	/* Kernel SMI memory pool for video core, used for firmware */
-	/* and encoder, decoder scratch buffers */
-	/* Kernel SMI memory pool should always precede the user space */
-	/* SMI memory pool, as the video core will use offset address */
-	/* from the Firmware base */
-	[MEMTYPE_SMI_KERNEL] = {
-		.start	=	KERNEL_SMI_BASE,
-		.limit	=	KERNEL_SMI_SIZE,
-		.size	=	KERNEL_SMI_SIZE,
-		.flags	=	MEMTYPE_FLAGS_FIXED,
-	},
-	/* User space SMI memory pool for video core */
-	/* used for encoder, decoder input & output buffers  */
-	[MEMTYPE_SMI] = {
-		.start	=	USER_SMI_BASE,
-		.limit	=	USER_SMI_SIZE,
-		.flags	=	MEMTYPE_FLAGS_FIXED,
-	},
-	[MEMTYPE_EBI0] = {
-		.flags	=	MEMTYPE_FLAGS_1M_ALIGN,
-	},
-	[MEMTYPE_EBI1] = {
-		.flags  =  MEMTYPE_FLAGS_1M_ALIGN,
-	},
-};
 
 #ifdef CONFIG_ANDROID_PMEM
 static void __init size_pmem_device(struct android_pmem_platform_data *pdata, unsigned long start, unsigned long size)
